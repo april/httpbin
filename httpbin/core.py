@@ -15,6 +15,11 @@ import time
 import uuid
 import argparse
 
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
+
 from flask import (
     Flask,
     Response,
@@ -158,7 +163,7 @@ swagger_config = {
     "specs_route": "/",
 }
 
-swagger = Swagger(app, sanitizer=NO_SANITIZER, template=template, config=swagger_config)
+# swagger = Swagger(app, sanitizer=NO_SANITIZER, template=template, config=swagger_config)
 
 # Set up Bugsnag exception tracking, if desired. To use Bugsnag, install the
 # Bugsnag Python client with the command "pip install bugsnag", and set the
@@ -237,7 +242,7 @@ def set_cors_headers(response):
 # ------
 
 
-@app.route("/legacy")
+@app.route("/")
 def view_landing_page():
     """Generates Landing Page in legacy layout."""
     return render_template("index.html")
@@ -1776,6 +1781,344 @@ def a_json_endpoint():
             ],
         }
     )
+
+
+#
+# MISBEHAVING ENDPOINTS BELOW #
+#
+def __misbehaving_terminal_response(output, raw=''):
+    # Desktop browser
+    if 'Mozilla' in request.headers.get('User-Agent'):
+        # Set the values in the headers, return JSON in the output
+        response = make_response(jsonify(output))
+        response.headers['Content-Type'] = 'application/json'
+
+    else:
+        # Set the output as octet-stream (binary), so you don't need to use
+        # a command line tool that outputs the HTTP headers
+        if type(output) is dict:
+            json_output = json.dumps(output, indent=2) + '\n'
+        elif type(output) is str:
+            json_output = output + '\n'
+        else:
+            json_output = '\n'
+
+        response = Response(raw + json_output, headers={
+            'Content-Type': 'application/octet-stream',
+            'Content-Length': str(len(raw) + len(json_output)),
+        })
+
+    # Copy everything into the headers
+    if type(output) is dict:
+        response.headers.extend(output)
+
+    response.status_code = 200
+
+    # return response
+    return response
+
+
+@app.route('/abortabortabort')
+def misbehaving_abortabortabort():
+    """TODO: Currently there is no way to have Flask abort a request ungracefully"""
+    pass
+
+
+@app.route('/content-length/<int:n>')
+def misbehaving_content_length(n, response=None):
+    """Returns a content length of n bytes"""
+    assert n > -1
+
+    if not response:
+        response = make_response(jsonify({'Content-Length': n}))
+        response.data = response.data[0:n]
+
+    # Don't put a Content Type if the content length is 0
+    if n == 0:
+        del(response.headers['Content-Type'])
+
+    response.headers['Content-Length'] = n
+
+    return response
+
+
+@app.route('/content-length/<int:cl>/status-code/<sc>')
+def misbehaving_content_length_status_code(cl, sc):
+    response = misbehaving_content_length(cl)
+
+    return misbehaving_status_code(sc, response)
+
+
+@app.route('/control-characters')
+def misbehaving_control_characters():
+    """All the control characters"""
+    chars = [ chr(i) for i in range(0, 32) ]
+    chars.remove('\n')
+    chars.remove('\r')
+    chars = ''.join(chars)
+
+    return __misbehaving_terminal_response({
+        'X-Control-Characters': chars,
+    }, chars)
+
+
+@app.route('/emoji')
+def misbehaving_emoji():
+    """Return a header with a delightful poop emoji in it"""
+    emoji = '\xf0\x9f\x92\xa9'
+
+    return __misbehaving_terminal_response({
+        'X-Emoji': emoji,
+    })
+
+
+@app.route('/long-header/<int:n>')
+def misbehaving_long_header(n):
+    """Return an extremely long header of X bytes"""
+    assert n > 0
+
+    response = make_response(jsonify({'X-Long-Header': 'n' * n}))
+
+    response.headers['Content-Type'] = 'application/json'
+    response.headers['X-Long-Header'] = 'n' * n
+
+    return response
+
+
+@app.route('/null-byte')
+def misbehaving_null_byte():
+    """Contains an X-Null-Byte header with a null byte inside it"""
+    return __misbehaving_terminal_response(
+        {'X-Null-Byte': 'null\x00byte'}
+    )
+
+
+@app.route('/open-redirection-injection')
+def misbehaving_open_redirection_injection():
+    """Redirects to some other site based on Host/XFH/Referer headers"""
+    HOST_HEADERS = ('Host',
+                    'X-Forwarded-Host',
+                    'X-Forwarded-Protocol')
+    INJECTION_HEADERS = ('Referer',)
+    NO_REDIRECTION_DOMAINS = ['localhost', '127.0.0.1', 'httpbin.org', 'misbehaving.site']
+
+    # Don't redirect for the server name, if we have it
+    if app.config['SERVER_NAME'] is not None:
+        NO_REDIRECTION_DOMAINS.append(app.config['SERVER_NAME'])
+
+    for header in INJECTION_HEADERS:
+        v = request.headers.get(header)
+
+        if v is not None and not any([domain in v for domain in NO_REDIRECTION_DOMAINS]):
+            return redirect(v, code=302)
+
+    for header in HOST_HEADERS:
+        v = request.headers.get(header)
+
+        # Don't use helper functions for request.url, because this can't be run behind a proxy
+        if v is not None and not any([domain in v for domain in NO_REDIRECTION_DOMAINS]):
+            return redirect(urlparse.urlparse(request.url).scheme + '://' + v + '/', code=302)
+
+    return view_headers()
+
+
+@app.route('/redirect-loop/<int:n>')
+def misbehaving_redirect_loop(n):
+    """Redirect in perpetuity.  Unlike redirect_n_times, it counts upwards so that you can see where the UA stops"""
+    assert n > -1
+
+    return redirect('/redirect-loop/' + str(n + 1))
+
+
+@app.route('/status-code/<int:n>')
+def misbehaving_status_code(n, response=None):
+    if not response:
+        response = make_response(jsonify({'Status-Code': n}))
+
+    response.status_code = int(n)
+
+    return response
+
+
+@app.route('/terminal-bells/<int:n>')
+def misbehaving_terminal_bells(n):
+    assert n > 0
+
+    bells = '\x07' * n
+
+    return __misbehaving_terminal_response({
+        'X-Bells': bells
+    }, bells)
+
+
+@app.route('/terminal-color-headers')
+def misbehaving_terminal_color_headers():
+    """A bunch of color coded headers that may screw up your terminal"""
+    foreground_colors = {
+        'Grey': '\033[30m',
+        'Red': '\033[31m',
+        'Green': '\033[32m',
+        'Yellow': '\033[33m',
+        'Blue': '\033[34m',
+        'Magenta': '\033[35m',
+        'Cyan': '\033[36m',
+        'White': '\033[37m',
+    }
+
+    background_colors = {
+        'Grey': '\033[40m',
+        'Red': '\033[41m',
+        'Green': '\033[42m',
+        'Yellow': '\033[43m',
+        'Blue': '\033[44m',
+        'Magenta': '\033[45m',
+        'Cyan': '\033[46m',
+        'White': '\033[47m',
+    }
+
+    styles = {
+        'Plain': '',
+        'Bolded': '\033[1m',
+        'Darkened': '\033[2m',
+        'Underlined': '\033[4m',
+        'Blinking': '\033[5m',
+        'Reversed': '\033[7m',
+        'Concealed': '\033[8m',
+    }
+
+    end_code = '\033[0m'
+
+    color_headers = {}
+
+    for fcolor, fcode in sorted(foreground_colors.items()):
+        for bcolor, bcode in sorted(background_colors.items()):
+            for sstyle, scode in sorted(styles.items()):
+                color_headers['X-' + fcolor + '-On-' + bcolor + '-' + sstyle] = \
+                    fcode + bcode + scode + fcolor + '-On-' + bcolor + '-' + sstyle + end_code
+
+    # Turn it into pseudo JSON
+    raw = '{'
+    for h, v in color_headers.items():
+        raw += '  ' + h + ': "' + v + '"' + '\n'
+    raw += '}'
+
+    # This response is pretty weird in how we handle it
+    if 'Mozilla' in request.headers.get('User-Agent'):
+        return __misbehaving_terminal_response(color_headers)
+    else:
+        return __misbehaving_terminal_response(None, raw)
+
+
+@app.route('/terminal-maximize')
+def misbehaving_terminal_maximize():
+    """Maximizes your terminal because why not"""
+    # In theory, we could use this:
+    # max = '\033[9;1t'
+
+    # But it turns out that a lot of terminals don't support it, so we force
+    # the position to 0,0 and the size to giganto huge
+
+    # \033[3;x;yt -> position (x, y)
+    # \033[8;x;yt -> size (x, y)
+    max = '\033[3;0;0t\033[8;500;500t'
+
+    return __misbehaving_terminal_response({
+        'X-Terminal-Maximize': max,
+    }, max)
+
+
+@app.route('/terminal-minimize')
+def misbehaving_terminal_minimize():
+    """Minimizes your terminal because why not"""
+    min = '\033[2t'
+
+    return __misbehaving_terminal_response({
+        'X-Terminal-Minimize': min,
+    }, min)
+
+
+@app.route('/terminal-title/<string:title>')
+def misbehaving_terminal_title(title):
+    """Returns a content length of n bytes"""
+    assert len(title) > 0
+
+    title = '\033]2;' + title + '\007'
+
+    return __misbehaving_terminal_response({
+        'X-Terminal-Title': title,
+    }, title)
+
+
+@app.route('/timeout')
+def misbehaving_timeout():
+    time.sleep(pow(2, 16))
+
+    return delay_response(0)
+
+
+@app.route('/too-many-headers/<int:n>')
+def misbehaving_too_many_headers(n):
+    """Creates a response with N X-Headers"""
+    assert n > 0
+
+    data = {'X-Header-' + str(n) : str(n) for n in range(1, n + 1)}
+
+    response = make_response(jsonify(data))
+    response.headers.extend(data)
+
+    return response
+
+
+@app.route('/mismatched-mime<path:extension>')
+def misbehaving_mismatched_mime(extension):
+    """Returns an item of content type """
+    header = request.args.get('header')
+    body = request.args.get('body', '').lower()
+
+    if not header or not body:
+        return jsonify({'Error': 'Header and body content types required'})
+
+    response = make_response()
+    response.headers['Content-Type'] = header
+
+    # Set XTCO: nosniff, if sniffing is disabled
+    if 'nosniff' in request.args:
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+
+    data = {
+        'header': header,
+        'body': body
+    }
+
+    if body == 'text/plain':
+        response.data = json.dumps(data) + '\n'
+    elif body == 'text/html':
+        response.data = """<html>
+  <head>
+  </head>
+  <body>
+    <code>{data}</code>
+  </body>
+</html>
+""".format(data=json.dumps(data))
+    elif body in ('image/png'):
+        response.data = resource('mismatched/mismatched_mime.png')
+    elif body in ('image/jpg', 'image/jpeg', 'image/pjpeg'):
+        response.data = resource('mismatched/mismatched_mime.jpg')
+    elif body in ('image/gif'):
+        response.data = resource('mismatched/mismatched_mime.gif')
+    elif body in ('image/tiff', 'image/x-tiff'):
+        response.data = resource('mismatched/mismatched_mime.tiff')
+    elif body in ('image/svg', 'image/svg+xml', 'image/svg xml'):
+        response.data = resource('mismatched/mismatched_mime.svg')
+    elif body in ('application/pdf'):
+        response.data = resource('mismatched/mismatched_mime.pdf')
+    elif body in ('audio/mpeg', 'audio/mp3'):
+        response.data = resource('mismatched/mismatched_mime.mp3')
+    elif body in ('video/mp4'):
+        response.data = resource('mismatched/mismatched_mime.mp4')
+
+    return response
 
 
 if __name__ == "__main__":

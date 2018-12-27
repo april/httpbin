@@ -1,14 +1,49 @@
 <div class='mp'>
-<h1>httpbin(1): HTTP Request &amp; Response Service</h1>
-<p>Freely hosted in <a href="http://httpbin.org">HTTP</a>, <a href="https://httpbin.org">HTTPS</a>, &amp; <a href="http://eu.httpbin.org/">EU</a> flavors by <a href="http://kennethreitz.org/bitcoin">Kenneth Reitz</a> &amp; <a href="https://www.heroku.com/python">Heroku</a>.</p>
+<h1>misbehaving.site(1): A less well-behaved version of  <a href="https://httpbin.org">httpbin</a></h1>
 
-<h2 id="BONUSPOINTS">BONUSPOINTS</h2>
-
+<h2 id="CDNs">CDNS</h2>
+<p>Want to see how various CDNs handle misbehaving.site?</p>
 <ul>
-<li><a href="https://now.httpbin.org/" data-bare-link="true"><code>now.httpbin.org</code></a> The current time, in a variety of formats.</li>
+    <li><a href="http://akamai.misbehaving.site">akamai.misbehaving.site</a></li>
+    <li><a href="//cloudflare.misbehaving.site">cloudflare.misbehaving.site</a></li>
+    <li><a href="//cloudfront.misbehaving.site">cloudfront.misbehaving.site</a></li>
+    <li><a href="http://fastly.misbehaving.site">fastly.misbehaving.site</a></li>
 </ul>
 
 <h2 id="ENDPOINTS">ENDPOINTS</h2>
+<ul>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_content_length', n=5) }}"><code>/content-length/:n</code></a> Sets the <code>Content-Length</code> to n bytes</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_content_length_status_code', cl=5, sc=200) }}"><code>/content-length/:cl/status-code/:sc</code></a> <code>Content-Length</code> to cl bytes, status code to sc</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_control_characters') }}" data-bare-link="true"><code>/control-characters</code></a> HTTP headers with all the control characters</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_emoji') }}" data-bare-link="true"><code>/emoji</code></a> HTTP header with a delightful emoji</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_long_header', n=262144) }}"><code>/long-header/:n</code></a> Returns an excessively long header of n bytes</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_mismatched_mime', extension='.pdf') }}?header=image/svg%2Bxml&body=image/jpeg"><code>/mismatched_mime[.ext]?header=header&body=body[&nosniff]</code></a><br>
+    <example>
+        Returns an <code>Content-Type</code> of <em>header</em>, body of content type <em>body</em>, with ignored <em>.ext</em><br>
+        Adding <em>nosniff</em> sets <code>X-Content-Type-Options: nosniff</code><br><br>
+        Supported types:
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.svg') }}?header=image/gif&body=image/png&nosniff">image/gif</a>,
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.gif') }}?header=image/jpg&body=application/pdf">image/jpeg</a>,
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.tiff') }}?header=image/png&body=image/jpg&nosniff">image/png</a>,
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.mp4') }}?header=image/tiff&body=application/pdf">image/tiff</a>,
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.pdf') }}?header=image/svg%2Bxml&body=image/jpg">image/svg+xml</a>,
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.mp3') }}?header=application/pdf&body=image/jpeg">application/pdf</a>,
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.png') }}?header=audio/mpeg&body=video/mp4">audio/mpeg</a>,
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.jpg') }}f?header=video/mp4&body=audio/mpeg">video/mp4</a><br>
+    </example>
+</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_null_byte') }}" data-bare-link="true"><code>/null-byte</code></a> HTTP header with a null byte</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_open_redirection_injection') }}" data-bare-link="true"><code>/open-redirection-injection</code></a> Redirect for injected Host, XFH, XFP, and Referer headers</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_redirect_loop', n=0) }}" data-bare-link="true"><code>/redirect-loop/:n</code></a> Infinite redirect loop that counts upward</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_status_code', n=987) }}" data-bare-link="true"><code>/status-code/:n</code></a> Return an arbitrary HTTP Status Code</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_terminal_bells', n=5) }}"><code>/terminal-bells/:n</code></a> Sends n bells to your terminal</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_terminal_color_headers') }}" data-bare-link="true"><code>/terminal-color-headers</code></a> HTTP headers with terminal color codes</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_terminal_minimize') }}" data-bare-link="true"><code>/terminal-minimize</code></a> Can't find your mouse? This will minimize your terminal</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_terminal_maximize') }}" data-bare-link="true"><code>/terminal-maximize</code></a> That &ldquo;+&rdquo; is just so far away! This will maximize your terminal</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_terminal_title', title='Well-behaved women seldom make history') }}" data-bare-link="true"><code>/terminal-title/:title</code></a> Sets the terminal title</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_timeout') }}" data-bare-link="true"><code>/timeout</code></a> Does nothing until you timeout</li>
+<li class="misbehaving last"><a href="{{ url_for('misbehaving_too_many_headers', n=16384) }}"><code>/too-many-headers/:n</code></a> Sends n HTTP headers</li>
+</ul>
 
 <ul>
 <li><a href="{{ url_for('view_landing_page') }}" data-bare-link="true"><code>/</code></a> This page.</li>
@@ -134,14 +169,6 @@ Content-Length: 135
   "origin": "109.60.101.240",
   "url": "http://httpbin.org/get?show_env=1"
 }
-</code></pre>
-
-<h2 id="Installing-and-running-from-PyPI">Installing and running from PyPI</h2>
-
-<p>You can install httpbin as a library from PyPI and run it as a WSGI app.  For example, using Gunicorn:</p>
-
-<pre><code class="bash">$ pip install httpbin
-$ gunicorn httpbin:app
 </code></pre>
 
 
