@@ -29,7 +29,9 @@
         <a href="{{ url_for('misbehaving_mismatched_mime', extension='.pdf') }}?header=image/svg%2Bxml&body=image/jpg">image/svg+xml</a>,
         <a href="{{ url_for('misbehaving_mismatched_mime', extension='.mp3') }}?header=application/pdf&body=image/jpeg">application/pdf</a>,
         <a href="{{ url_for('misbehaving_mismatched_mime', extension='.png') }}?header=audio/mpeg&body=video/mp4">audio/mpeg</a>,
-        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.jpg') }}f?header=video/mp4&body=audio/mpeg">video/mp4</a><br>
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.jpg') }}?header=text/html&body=image/png">text/html</a>,
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.svg') }}?header=text/plain&body=text/html">text/plain</a>,
+        <a href="{{ url_for('misbehaving_mismatched_mime', extension='.jpg') }}?header=video/mp4&body=audio/mpeg">video/mp4</a><br>
     </example>
 </li>
 <li class="misbehaving"><a href="{{ url_for('misbehaving_null_byte') }}" data-bare-link="true"><code>/null-byte</code></a> HTTP header with a null byte</li>
