@@ -1824,6 +1824,11 @@ def misbehaving_abortabortabort():
     pass
 
 
+@app.route('/blinking-text-rules')
+def misbehaving_blinking_text_rules():
+    return render_template('blinking-text-rules.html')
+
+
 @app.route('/content-length/<int:n>')
 def misbehaving_content_length(n, response=None):
     """Returns a content length of n bytes"""

@@ -12,6 +12,7 @@
 
 <h2 id="ENDPOINTS">ENDPOINTS</h2>
 <ul>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_blinking_text_rules') }}" data-bare-link="true"><code>/blinking-text-rules</code></a> Turn your URL bar into something much better / worse</li>
 <li class="misbehaving"><a href="{{ url_for('misbehaving_content_length', n=5) }}"><code>/content-length/:n</code></a> Sets the <code>Content-Length</code> to n bytes</li>
 <li class="misbehaving"><a href="{{ url_for('misbehaving_content_length_status_code', cl=5, sc=200) }}"><code>/content-length/:cl/status-code/:sc</code></a> <code>Content-Length</code> to cl bytes, status code to sc</li>
 <li class="misbehaving"><a href="{{ url_for('misbehaving_control_characters') }}" data-bare-link="true"><code>/control-characters</code></a> HTTP headers with all the control characters</li>
@@ -37,7 +38,7 @@
 <li class="misbehaving"><a href="{{ url_for('misbehaving_null_byte') }}" data-bare-link="true"><code>/null-byte</code></a> HTTP header with a null byte</li>
 <li class="misbehaving"><a href="{{ url_for('misbehaving_open_redirection_injection') }}" data-bare-link="true"><code>/open-redirection-injection</code></a> Redirect for injected Host, XFH, XFP, and Referer headers</li>
 <li class="misbehaving"><a href="{{ url_for('misbehaving_redirect_loop', n=0) }}" data-bare-link="true"><code>/redirect-loop/:n</code></a> Infinite redirect loop that counts upward</li>
-<li class="misbehaving"><a href="{{ url_for('misbehaving_scrolling_marquee_rules') }}" data-bare-link="true"><code>/scrolling-marquee-rules</code></a> Turn your URL bar into something much better / worse</li>
+<li class="misbehaving"><a href="{{ url_for('misbehaving_scrolling_marquee_rules') }}" data-bare-link="true"><code>/scrolling-marquee-rules</code></a> Turn your URL bar into something… okay, much worse</li>
 <li class="misbehaving"><a href="{{ url_for('misbehaving_status_code', n=987) }}" data-bare-link="true"><code>/status-code/:n</code></a> Return an arbitrary HTTP Status Code</li>
 <li class="misbehaving"><a href="{{ url_for('misbehaving_terminal_bells', n=5) }}"><code>/terminal-bells/:n</code></a> Sends n bells to your terminal</li>
 <li class="misbehaving"><a href="{{ url_for('misbehaving_terminal_color_headers') }}" data-bare-link="true"><code>/terminal-color-headers</code></a> HTTP headers with terminal color codes</li>

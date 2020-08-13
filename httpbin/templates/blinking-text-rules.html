@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta http-equiv='content-type' value='text/html;charset=utf8'>
+      <title>misbehaving.site: a less well-behaved version of httpbin</title>
+
+      <script type="application/javascript">
+          const originalPath = document.location.pathname;
+
+          // blink this bad boy
+          const blink = () => {
+              history.replaceState(
+                  null,
+                  '',
+                  document.location.pathname.length < 2 ? originalPath : '/');
+          };
+
+          setInterval(blink, 750);
+      </script>
+  </head>
+  <body>
+      <h1 style="margin: 2em auto; width: 25em;">Oh no it's too late</h1>
+  </body>
+</html>
