@@ -6,14 +6,16 @@
 
       <script type="application/javascript">
           // on page start, create a huge URL
-          history.replaceState(null, "", Array(10).fill(window.location.pathname.substr(1) + '-').join(''))
+          history.replaceState(null, "", Array(10).fill(window.location.pathname.substr(1) + ' 🎉 ').join(''))
 
           // scroll this bad boy
           const scroll = () => {
+              const splitUrl = Array.from(decodeURIComponent(document.location.pathname.substr(1)));
+
               history.replaceState(
                   null,
                   "",
-                  window.location.pathname.substr(2, window.location.pathname.length) + window.location.pathname.substr(1, 1))
+                  splitUrl.slice(1).concat(splitUrl[1]).join(''));
           };
 
           setInterval(scroll, 200);
