@@ -1930,6 +1930,11 @@ def misbehaving_redirect_loop(n):
     return redirect('/redirect-loop/' + str(n + 1))
 
 
+@app.route('/scrolling-marquee-rules')
+def misbehaving_scrolling_marquee_rules():
+    return render_template('scrolling-marquee-rules.html')
+
+
 @app.route('/status-code/<int:n>')
 def misbehaving_status_code(n, response=None):
     if not response:

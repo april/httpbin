@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta http-equiv='content-type' value='text/html;charset=utf8'>
+      <title>misbehaving.site: a less well-behaved version of httpbin</title>
+
+      <script type="application/javascript">
+          // on page start, add "-"
+          history.replaceState(null, "", `${window.location.pathname}-`);
+
+          // scroll this bad boy
+          const scroll = () => {
+              history.replaceState(
+                  null,
+                  "",
+                  window.location.pathname.substr(2, window.location.pathname.length) + window.location.pathname.substr(1, 1))
+          };
+
+          setInterval(scroll, 400);
+      </script>
+  </head>
+  <body>
+      <h1 style="margin: 2em auto; width: 25em;">Please ban me from the internet before it's too late</h1>
+  </body>
+</html>
